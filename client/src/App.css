@@ -1,0 +1,23 @@
+.homepage-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.homepage-container .input-container input {
+  display: block;
+  font-size: 24px;
+  padding: 10px 20px;
+  margin: 10px;
+}
+
+.homepage-container .input-container button {
+  width: 100%;
+  display: block;
+  font-size: 24px;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+}
