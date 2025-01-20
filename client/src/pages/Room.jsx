@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useState,useCallback, useEffect } from "react";
+import ReactPlayer from "react-player";
 import { useSocket } from "../providers/Socket";
 import { usePeer } from "../providers/Peer";
-import ReactPlayer from "react-player";
 
 const RoomPage = () => {
   const { socket } = useSocket();
@@ -14,7 +14,6 @@ const RoomPage = () => {
     remoteStream,
   } = usePeer();
 
-  // myStream is the stream of the user
   const [myStream, setMyStream] = useState(null);
   const [remoteEmailId, setRemoteEmailId] = useState(null);
 
@@ -45,7 +44,6 @@ const RoomPage = () => {
       const { ans } = data;
       console.log("Call accepted", ans);
       await setRemoteAns(ans);
-      //   sendStream(myStream);
     },
     [setRemoteAns]
   );
@@ -55,15 +53,20 @@ const RoomPage = () => {
       video: true,
       audio: true,
     });
-    // sendStream(stream);
+    console.log("Stream obtained:", stream);
     setMyStream(stream);
-  }, []);
+    // sendStream(stream);  // Optional: send stream automatically
+  }, [sendStream]);
 
   const handleNegotiationNeeded = useCallback(async () => {
+    if (!remoteEmailId) {
+      console.error("Remote email ID is not set");
+      return;
+    }
     console.log("Negotiation needed");
     const localOffer = await createOffer();
     socket.emit("call-user", { emailId: remoteEmailId, offer: localOffer });
-  }, []);
+  }, [createOffer, socket, remoteEmailId]);
 
   useEffect(() => {
     socket.on("user-joined", handleNewUserJoined);
@@ -76,7 +79,6 @@ const RoomPage = () => {
     };
   }, [socket, handleNewUserJoined, handleIncomingCall, handleCallAccepted]);
 
-  // used to get the user media stream when page is loaded
   useEffect(() => {
     getUserMediaStream();
   }, [getUserMediaStream]);
@@ -86,15 +88,48 @@ const RoomPage = () => {
     return () => {
       peer.removeEventListener("negotiationneeded", handleNegotiationNeeded);
     };
-  }, []);
+  }, [peer, handleNegotiationNeeded]);
 
   return (
     <div>
       <h1>Room Page</h1>
       <h4>You are connected to {remoteEmailId}</h4>
-      <ReactPlayer url={myStream} playing muted />
-      <ReactPlayer url={remoteStream} playing />
-      <button onClick={(e) => sendStream(myStream)}>Send Stream</button>
+
+      {/* My stream (local user video) */}
+      {myStream && (
+        <ReactPlayer
+          url={myStream}
+          playing
+          muted
+          width="300px"
+          height="200px"
+          config={{
+            file: {
+              attributes: {
+                controls: true,
+              },
+            },
+          }}
+        />
+      )}
+
+      {/* Remote stream (remote user video) */}
+      {remoteStream && (
+        <ReactPlayer
+          url={remoteStream}
+          playing
+          width="300px"
+          height="200px"
+          config={{
+            file: {
+              attributes: {
+                controls: true,
+              },
+            },
+          }}
+        />
+      )}
+      <button onClick={()=>sendStream(myStream)}>Send Stream</button>
     </div>
   );
 };

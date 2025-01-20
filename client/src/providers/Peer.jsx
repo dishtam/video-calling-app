@@ -41,14 +41,13 @@ const PeerProvider = ({ children }) => {
 
   const sendStream = async (stream) => {
     const tracks = await stream.getTracks();
-    // const senders = peer.getSenders();
 
     for (const track of tracks) {
-    //   if (!senders.some(sender => sender.track === track)) {
       peer.addTrack(track, stream);
-    //   }
     }
   };
+
+
 
   const handleTrackEvent = useCallback((ev) => {
     const streams = ev.streams;
